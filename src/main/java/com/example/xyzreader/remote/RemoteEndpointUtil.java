@@ -46,7 +46,7 @@ public class RemoteEndpointUtil {
     }
 
     static String fetchPlainText(URL url) throws IOException {
-        return new String(fetch(url), "UTF-8" );
+        return new String(fetch(url), "UTF-8");
     }
 
     static byte[] fetch(URL url) throws IOException {

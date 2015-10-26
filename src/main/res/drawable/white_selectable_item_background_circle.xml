@@ -15,17 +15,17 @@
   -->
 
 <selector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:enterFadeDuration="100"
-    android:exitFadeDuration="100">
+          android:enterFadeDuration="100"
+          android:exitFadeDuration="100">
     <item android:state_pressed="true">
         <shape android:shape="oval">
-            <solid android:color="#3fff" />
+            <solid android:color="#3fff"/>
         </shape>
     </item>
     <item android:state_focused="true">
         <shape android:shape="oval">
-            <solid android:color="#2fff" />
+            <solid android:color="#2fff"/>
         </shape>
     </item>
-    <item android:drawable="@android:color/transparent" />
+    <item android:drawable="@android:color/transparent"/>
 </selector>
