@@ -18,7 +18,7 @@
 <resources>
 
     <style name="Theme.XYZTheme" parent="@style/Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">@color/xyz_primary_light</item>
+        <item name="colorPrimary">@color/xyz_primary</item>
         <item name="colorPrimaryDark">@color/xyz_primary_dark</item>
         <item name="colorAccent">@color/xyz_accent</item>
         <item name="android:textColorPrimary">@color/xyz_primary_text</item>
