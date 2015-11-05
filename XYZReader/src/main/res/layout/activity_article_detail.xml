@@ -1,13 +1,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
     <android.support.design.widget.CoordinatorLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/background_light"
         android:fitsSystemWindows="true">
 
         <android.support.design.widget.AppBarLayout
@@ -22,11 +20,11 @@
                 android:id="@+id/article_collapsing"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:fitsSystemWindows="true"
                 app:contentScrim="?attr/colorPrimary"
                 app:expandedTitleMarginEnd="64dp"
                 app:expandedTitleMarginStart="48dp"
-                app:layout_scrollFlags="scroll|exitUntilCollapsed">
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                app:titleEnabled="false">
 
                 <ImageView
                     android:id="@+id/article_backdrop"
@@ -35,14 +33,15 @@
                     android:contentDescription="@string/content_desc_article_backdrop_img"
                     android:fitsSystemWindows="true"
                     android:scaleType="centerCrop"
+                    app:contentScrim="?attr/colorPrimary"
                     app:layout_scrollFlags="scroll|enterAlways"/>
 
                 <android.support.v7.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
-                    app:layout_scrollFlags="scroll|enterAlways"
-                    />
+                    app:layout_collapseMode="pin"
+                    app:layout_scrollFlags="scroll"/>
 
             </android.support.design.widget.CollapsingToolbarLayout>
         </android.support.design.widget.AppBarLayout>
@@ -51,7 +50,9 @@
             android:id="@+id/pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:behavior_overlapTop="60dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/share_fab"
