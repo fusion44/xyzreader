@@ -9,6 +9,8 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
@@ -23,6 +25,8 @@ import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
 import com.example.xyzreader.data.UpdaterService;
+
+import java.util.ArrayList;
 
 /**
  * An activity representing a list of Articles. This activity has different presentations for
@@ -89,13 +93,69 @@ public class ArticleListActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        Adapter adapter = new Adapter(cursor);
-        adapter.setHasStableIds(true);
+        final int columnCount = getResources().getInteger(R.integer.list_column_count);
+
+        cursor.moveToFirst();
+        ArrayList<ArticleViewModel> viewModels = new ArrayList<>(cursor.getCount());
+
+        int currentColumn = 0;
+        while (!cursor.isAfterLast()) {
+            String subtitle = DateUtils.getRelativeTimeSpanString(
+                    cursor.getLong(ArticleLoader.Query.PUBLISHED_DATE),
+                    System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
+                    DateUtils.FORMAT_ABBREV_ALL).toString()
+                    + " by "
+                    + cursor.getString(ArticleLoader.Query.AUTHOR);
+
+            int spanSize = 1;
+
+            if (columnCount == 2 && currentColumn == 0) {
+                // if we are in two column mode, check whether this item is displayed in first column
+                // if yes, check whether it will be displayed with two columns
+                int rand = (int) (Math.random() * 4);
+                if (rand == 2) {
+                    spanSize = 2;
+
+                    // count one up as one additional column is used up.
+                    // This basically leads to resetting at the end of this for loop on case of two columns
+                    currentColumn++;
+                }
+            } else if (columnCount == 3) {
+                if (currentColumn == 0 || currentColumn == 1) {
+                    int rand = (int) (Math.random() * 3);
+                    if (rand == 2) {
+                        spanSize = 2;
+                        currentColumn++; // count one up as one additional column is used up
+                    }
+                }
+            }
+
+            ArticleViewModel avm = new ArticleViewModel(
+                    cursor.getLong(ArticleLoader.Query._ID),
+                    cursor.getString(ArticleLoader.Query.TITLE),
+                    subtitle,
+                    cursor.getString(ArticleLoader.Query.THUMB_URL),
+                    spanSize
+            );
+            viewModels.add(avm);
+            cursor.moveToNext();
+
+            currentColumn++;
+            // reset column counter.
+            if (currentColumn >= columnCount) {
+                currentColumn = 0;
+            }
+        }
+
+        ArticleAdapter adapter = new ArticleAdapter();
+        adapter.replaceModels(viewModels);
         mRecyclerView.setAdapter(adapter);
-        int columnCount = getResources().getInteger(R.integer.list_column_count);
-        StaggeredGridLayoutManager sglm =
-                new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
-        mRecyclerView.setLayoutManager(sglm);
+        GridLayoutManager glm = new GridLayoutManager(
+                getApplicationContext(), columnCount, LinearLayoutManager.VERTICAL, false);
+        glm.setSpanSizeLookup(adapter.getSpanSizeLookup());
+        mRecyclerView.setLayoutManager(glm);
+        glm.requestLayout();
+
     }
 
     @Override
@@ -103,12 +163,12 @@ public class ArticleListActivity extends AppCompatActivity implements
         mRecyclerView.setAdapter(null);
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ArticleViewHolder extends RecyclerView.ViewHolder {
         public ImageView thumbnailView;
         public TextView titleView;
         public TextView subtitleView;
 
-        public ViewHolder(View view) {
+        public ArticleViewHolder(View view) {
             super(view);
             thumbnailView = (ImageView) view.findViewById(R.id.thumbnail);
             titleView = (TextView) view.findViewById(R.id.article_title);
@@ -116,23 +176,15 @@ public class ArticleListActivity extends AppCompatActivity implements
         }
     }
 
-    private class Adapter extends RecyclerView.Adapter<ViewHolder> {
-        private Cursor mCursor;
+    private class ArticleAdapter extends BaseAdapter<ArticleViewModel, ArticleViewHolder> {
 
-        public Adapter(Cursor cursor) {
-            mCursor = cursor;
+        public ArticleAdapter() {
         }
 
         @Override
-        public long getItemId(int position) {
-            mCursor.moveToPosition(position);
-            return mCursor.getLong(ArticleLoader.Query._ID);
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public ArticleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
-            final ViewHolder vh = new ViewHolder(view);
+            final ArticleViewHolder vh = new ArticleViewHolder(view);
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -144,25 +196,25 @@ public class ArticleListActivity extends AppCompatActivity implements
         }
 
         @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            mCursor.moveToPosition(position);
-            holder.titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
-            holder.subtitleView.setText(
-                    DateUtils.getRelativeTimeSpanString(
-                            mCursor.getLong(ArticleLoader.Query.PUBLISHED_DATE),
-                            System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
-                            DateUtils.FORMAT_ABBREV_ALL).toString()
-                            + " by "
-                            + mCursor.getString(ArticleLoader.Query.AUTHOR));
+        public void onBindViewHolder(ArticleViewHolder holder, int position) {
+            ArticleViewModel model = mViewModels.get(position);
+            holder.titleView.setText(String.valueOf(position) + " " + model.getTitle());
+            holder.subtitleView.setText(model.getSubtitle());
             Glide.with(getApplicationContext())
-                    .load(mCursor.getString(ArticleLoader.Query.THUMB_URL))
+                    .load(model.getThumbnailUrl())
                     .centerCrop()
                     .into(holder.thumbnailView);
-        }
 
-        @Override
-        public int getItemCount() {
-            return mCursor.getCount();
+            if (model.spanCount == 2) {
+                final ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
+                if (lp instanceof StaggeredGridLayoutManager.LayoutParams) {
+                    StaggeredGridLayoutManager.LayoutParams sglp =
+                            (StaggeredGridLayoutManager.LayoutParams) lp;
+                    sglp.setFullSpan(true);
+                    holder.itemView.setLayoutParams(sglp);
+                }
+            }
+            runAnimation(holder, position, defaultItemAnimationDuration, getAnimationDirection());
         }
     }
 }
