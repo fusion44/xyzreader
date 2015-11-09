@@ -134,9 +134,9 @@ public class ArticleListActivity extends AppCompatActivity implements
                     cursor.getLong(ArticleLoader.Query._ID),
                     cursor.getString(ArticleLoader.Query.TITLE),
                     subtitle,
+                    cursor.getString(ArticleLoader.Query.PHOTO_URL),
                     cursor.getString(ArticleLoader.Query.THUMB_URL),
-                    spanSize
-            );
+                    spanSize);
             viewModels.add(avm);
             cursor.moveToNext();
 
@@ -177,6 +177,7 @@ public class ArticleListActivity extends AppCompatActivity implements
     }
 
     private class ArticleAdapter extends BaseAdapter<ArticleViewModel, ArticleViewHolder> {
+        private String LOG_TAG = ArticleAdapter.class.getSimpleName();
 
         public ArticleAdapter() {
         }
@@ -198,22 +199,23 @@ public class ArticleListActivity extends AppCompatActivity implements
         @Override
         public void onBindViewHolder(ArticleViewHolder holder, int position) {
             ArticleViewModel model = mViewModels.get(position);
-            holder.titleView.setText(String.valueOf(position) + " " + model.getTitle());
-            holder.subtitleView.setText(model.getSubtitle());
+            holder.titleView.setText(String.valueOf(position) + " " + model.title);
+            holder.subtitleView.setText(model.subtitle);
+
+            final ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
+            if (lp instanceof StaggeredGridLayoutManager.LayoutParams) {
+                StaggeredGridLayoutManager.LayoutParams sglp =
+                        (StaggeredGridLayoutManager.LayoutParams) lp;
+                sglp.setFullSpan(true);
+                holder.itemView.setLayoutParams(sglp);
+            }
+
+            // WARNING: https://github.com/bumptech/glide/issues/479
+            // See Option 1
             Glide.with(getApplicationContext())
-                    .load(model.getThumbnailUrl())
-                    .centerCrop()
+                    .load(model.thumbnailUrl)
                     .into(holder.thumbnailView);
 
-            if (model.spanCount == 2) {
-                final ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
-                if (lp instanceof StaggeredGridLayoutManager.LayoutParams) {
-                    StaggeredGridLayoutManager.LayoutParams sglp =
-                            (StaggeredGridLayoutManager.LayoutParams) lp;
-                    sglp.setFullSpan(true);
-                    holder.itemView.setLayoutParams(sglp);
-                }
-            }
             runAnimation(holder, position, defaultItemAnimationDuration, getAnimationDirection());
         }
     }
