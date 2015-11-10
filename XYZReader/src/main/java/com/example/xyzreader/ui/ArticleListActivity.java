@@ -15,6 +15,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -55,6 +56,17 @@ public class ArticleListActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_article_list);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mRecyclerView.addOnItemTouchListener(new RecyclerViewClickListener(getApplicationContext(), new RecyclerViewClickListener.OnItemGestureListener() {
+            @Override public void onItemClick(View view, int position) {
+                startActivity(new Intent(Intent.ACTION_VIEW,
+                        ItemsContract.Items.buildItemUri(position)));
+            }
+
+            @Override public void onItemLongClick(View view, int position) {
+
+            }
+        }));
+
         getLoaderManager().initLoader(0, null, this);
 
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
@@ -156,6 +168,20 @@ public class ArticleListActivity extends AppCompatActivity implements
         mRecyclerView.setLayoutManager(glm);
         glm.requestLayout();
 
+        mRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+                return false;
+            }
+
+            @Override public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+
+            }
+
+            @Override public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+            }
+        });
+
     }
 
     @Override
@@ -185,15 +211,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         @Override
         public ArticleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
-            final ArticleViewHolder vh = new ArticleViewHolder(view);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))));
-                }
-            });
-            return vh;
+            return new ArticleViewHolder(view);
         }
 
         @Override
