@@ -5,9 +5,11 @@ import android.app.LoaderManager;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.ShareCompat;
+import android.support.v7.graphics.Palette;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
@@ -19,6 +21,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 
@@ -124,7 +128,18 @@ public class ArticleDetailFragment extends Fragment implements
 
             Glide.with(getActivity())
                     .load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
-                    .into(mPhotoView);
+                    .asBitmap()
+                    .into(new BitmapImageViewTarget(mPhotoView) {
+                        @Override
+                        public void onResourceReady(Bitmap bmp, GlideAnimation<? super Bitmap> glideAnimation) {
+                            super.onResourceReady(bmp, glideAnimation);
+                            Palette.from(bmp).generate(new Palette.PaletteAsyncListener() {
+                                @Override public void onGenerated(Palette p) {
+                                    setPalette(p);
+                                }
+                            });
+                        }
+                    });
 
             /*ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
                     .get(), new ImageLoader.ImageListener() {
@@ -147,6 +162,10 @@ public class ArticleDetailFragment extends Fragment implements
             bylineView.setText("N/A");
             bodyView.setText("N/A");
         }
+    }
+
+    private void setPalette(Palette p) {
+
     }
 
     @Override
