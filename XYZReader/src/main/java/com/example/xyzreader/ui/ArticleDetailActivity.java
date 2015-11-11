@@ -17,7 +17,6 @@ import android.view.View;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
-import com.example.xyzreader.data.ItemsContract;
 
 /**
  * An activity representing a single Article detail screen, letting you swipe between articles.
@@ -25,6 +24,7 @@ import com.example.xyzreader.data.ItemsContract;
 public class ArticleDetailActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    public static final String EXTRA_ITEM_ID = "ARTICLE_ITEM_URI";
     private Cursor mCursor;
     private long mStartId;
 
@@ -67,8 +67,8 @@ public class ArticleDetailActivity extends AppCompatActivity
         });
 
         if (savedInstanceState == null) {
-            if (getIntent() != null && getIntent().getData() != null) {
-                mStartId = ItemsContract.Items.getItemId(getIntent().getData());
+            if (getIntent() != null) {
+                mStartId = getIntent().getLongExtra(EXTRA_ITEM_ID, -1);
             }
         }
     }

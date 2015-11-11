@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -24,7 +25,6 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
-import com.example.xyzreader.data.ItemsContract;
 import com.example.xyzreader.data.UpdaterService;
 
 import java.util.ArrayList;
@@ -58,8 +58,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.addOnItemTouchListener(new RecyclerViewClickListener(getApplicationContext(), new RecyclerViewClickListener.OnItemGestureListener() {
             @Override public void onItemClick(View view, int position) {
-                startActivity(new Intent(Intent.ACTION_VIEW,
-                        ItemsContract.Items.buildItemUri(position)));
+                startDetailActivity(view, position);
             }
 
             @Override public void onItemLongClick(View view, int position) {
@@ -75,6 +74,15 @@ public class ArticleListActivity extends AppCompatActivity implements
         if (savedInstanceState == null) {
             refresh();
         }
+    }
+
+    private void startDetailActivity(View view, int position) {
+        Intent i = new Intent(getApplicationContext(), ArticleDetailActivity.class);
+        i.putExtra(ArticleDetailActivity.EXTRA_ITEM_ID, (long) view.getTag());
+        ActivityOptionsCompat options = ActivityOptionsCompat.
+                makeSceneTransitionAnimation(this, view.findViewById(R.id.thumbnail),
+                        getString(R.string.article_img_transistion_name));
+        startActivity(i, options.toBundle());
     }
 
     private void refresh() {
@@ -217,6 +225,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         @Override
         public void onBindViewHolder(ArticleViewHolder holder, int position) {
             ArticleViewModel model = mViewModels.get(position);
+            holder.itemView.setTag(model.id);
             holder.titleView.setText(String.valueOf(position) + " " + model.title);
             holder.subtitleView.setText(model.subtitle);
 
@@ -231,7 +240,7 @@ public class ArticleListActivity extends AppCompatActivity implements
             // WARNING: https://github.com/bumptech/glide/issues/479
             // See Option 1
             Glide.with(getApplicationContext())
-                    .load(model.thumbnailUrl)
+                    .load(model.photoUrl)
                     .into(holder.thumbnailView);
 
             runAnimation(holder, position, defaultItemAnimationDuration, getAnimationDirection());

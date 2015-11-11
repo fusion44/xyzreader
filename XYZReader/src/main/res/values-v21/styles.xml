@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Bacon" parent="@style/Theme.AppCompat.NoActionBar">
-
+    <style name="Theme.XYZTheme" parent="@style/Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/xyz_primary</item>
         <item name="colorPrimaryDark">@color/xyz_primary_dark</item>
         <item name="colorAccent">@color/xyz_accent</item>
         <item name="android:statusBarColor">@color/xyz_primary_dark</item>
         <item name="android:textColorPrimary">@color/xyz_primary_text</item>
         <item name="android:colorBackground">@android:color/white</item>
+        <item name="android:windowContentTransitions">true</item>
     </style>
 </resources>

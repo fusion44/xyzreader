@@ -33,6 +33,7 @@
                     android:contentDescription="@string/content_desc_article_backdrop_img"
                     android:fitsSystemWindows="true"
                     android:scaleType="centerCrop"
+                    android:transitionName="@string/article_img_transistion_name"
                     app:contentScrim="?attr/colorPrimary"
                     app:layout_scrollFlags="scroll|enterAlways"/>
 
