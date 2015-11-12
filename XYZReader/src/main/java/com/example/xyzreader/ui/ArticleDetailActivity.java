@@ -14,7 +14,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
 import android.view.View;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 
@@ -25,11 +27,14 @@ public class ArticleDetailActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String EXTRA_ITEM_ID = "ARTICLE_ITEM_URI";
+    public static final String EXTRA_ITEM_IMG_URL = "ARTICLE_ITEM_IMG_URL";
+
     private Cursor mCursor;
     private long mStartId;
 
     private ViewPager mPager;
     private MyPagerAdapter mPagerAdapter;
+    private ImageView mPhotoView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,15 +67,35 @@ public class ArticleDetailActivity extends AppCompatActivity
             public void onPageSelected(int position) {
                 if (mCursor != null) {
                     mCursor.moveToPosition(position);
+
+                    String url = mCursor.getString(ArticleLoader.Query.PHOTO_URL);
+                    updateAppBarImage(url);
                 }
             }
         });
 
+        mPhotoView = (ImageView) this.findViewById(R.id.article_backdrop);
+
         if (savedInstanceState == null) {
             if (getIntent() != null) {
                 mStartId = getIntent().getLongExtra(EXTRA_ITEM_ID, -1);
+
+                String url = getIntent().getStringExtra(EXTRA_ITEM_IMG_URL);
+                if (!url.equals("")) {
+                    Glide.with(this)
+                            .load(url)
+                            .crossFade()
+                            .into(mPhotoView);
+                }
             }
         }
+    }
+
+    private void updateAppBarImage(String url) {
+        Glide.with(this)
+                .load(url)
+                .crossFade()
+                .into(mPhotoView);
     }
 
     @Override

@@ -16,7 +16,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -78,7 +77,11 @@ public class ArticleListActivity extends AppCompatActivity implements
 
     private void startDetailActivity(View view, int position) {
         Intent i = new Intent(getApplicationContext(), ArticleDetailActivity.class);
-        i.putExtra(ArticleDetailActivity.EXTRA_ITEM_ID, (long) view.getTag());
+
+        ArticleViewModel avm = (ArticleViewModel) view.getTag();
+        i.putExtra(ArticleDetailActivity.EXTRA_ITEM_ID, avm.id);
+        i.putExtra(ArticleDetailActivity.EXTRA_ITEM_IMG_URL, avm.photoUrl);
+
         ActivityOptionsCompat options = ActivityOptionsCompat.
                 makeSceneTransitionAnimation(this, view.findViewById(R.id.thumbnail),
                         getString(R.string.article_img_transistion_name));
@@ -175,21 +178,6 @@ public class ArticleListActivity extends AppCompatActivity implements
         glm.setSpanSizeLookup(adapter.getSpanSizeLookup());
         mRecyclerView.setLayoutManager(glm);
         glm.requestLayout();
-
-        mRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
-            @Override public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
-                return false;
-            }
-
-            @Override public void onTouchEvent(RecyclerView rv, MotionEvent e) {
-
-            }
-
-            @Override public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-
-            }
-        });
-
     }
 
     @Override
@@ -211,8 +199,6 @@ public class ArticleListActivity extends AppCompatActivity implements
     }
 
     private class ArticleAdapter extends BaseAdapter<ArticleViewModel, ArticleViewHolder> {
-        private String LOG_TAG = ArticleAdapter.class.getSimpleName();
-
         public ArticleAdapter() {
         }
 
@@ -225,7 +211,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         @Override
         public void onBindViewHolder(ArticleViewHolder holder, int position) {
             ArticleViewModel model = mViewModels.get(position);
-            holder.itemView.setTag(model.id);
+            holder.itemView.setTag(model);
             holder.titleView.setText(String.valueOf(position) + " " + model.title);
             holder.subtitleView.setText(model.subtitle);
 

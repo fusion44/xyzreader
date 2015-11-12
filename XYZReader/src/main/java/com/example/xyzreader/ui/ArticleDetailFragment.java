@@ -40,8 +40,6 @@ public class ArticleDetailFragment extends Fragment implements
     private long mItemId;
     private View mRootView;
 
-    private ImageView mPhotoView;
-
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -84,8 +82,6 @@ public class ArticleDetailFragment extends Fragment implements
                              Bundle savedInstanceState) {
         mRootView = inflater.inflate(R.layout.fragment_article_detail, container, false);
 
-        mPhotoView = (ImageView) getActivity().findViewById(R.id.article_backdrop);
-
         getActivity().findViewById(R.id.share_fab).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -126,21 +122,6 @@ public class ArticleDetailFragment extends Fragment implements
                             + "</font>"));
             bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY)));
 
-            Glide.with(getActivity())
-                    .load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
-                    .asBitmap()
-                    .into(new BitmapImageViewTarget(mPhotoView) {
-                        @Override
-                        public void onResourceReady(Bitmap bmp, GlideAnimation<? super Bitmap> glideAnimation) {
-                            super.onResourceReady(bmp, glideAnimation);
-                            Palette.from(bmp).generate(new Palette.PaletteAsyncListener() {
-                                @Override public void onGenerated(Palette p) {
-                                    setPalette(p);
-                                }
-                            });
-                        }
-                    });
-
             /*ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
                     .get(), new ImageLoader.ImageListener() {
                         @Override
@@ -162,10 +143,6 @@ public class ArticleDetailFragment extends Fragment implements
             bylineView.setText("N/A");
             bodyView.setText("N/A");
         }
-    }
-
-    private void setPalette(Palette p) {
-
     }
 
     @Override
