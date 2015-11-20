@@ -3,6 +3,7 @@ package com.example.xyzreader.ui;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.LoaderManager;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.drawable.ColorDrawable;
@@ -28,6 +29,7 @@ public class ArticleDetailActivity extends AppCompatActivity
 
     public static final String EXTRA_ITEM_ID = "ARTICLE_ITEM_URI";
     public static final String EXTRA_ITEM_IMG_URL = "ARTICLE_ITEM_IMG_URL";
+    public static final String EXTRA_CURSOR_POSITION = "ARTICLE_ITEM_POSITION";
 
     private Cursor mCursor;
     private long mStartId;
@@ -127,6 +129,15 @@ public class ArticleDetailActivity extends AppCompatActivity
     @Override public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+
+    @Override public void onBackPressed() {
+        // report cursor position back
+        // RecyclerView has to scroll to last viewed article
+        Intent i = new Intent();
+        i.putExtra(ArticleDetailActivity.EXTRA_CURSOR_POSITION, mCursor.getPosition());
+        setResult(RESULT_OK, i);
+        super.onBackPressed();
     }
 
     @Override

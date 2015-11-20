@@ -36,7 +36,7 @@ import java.util.ArrayList;
  */
 public class ArticleListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
-
+    private final static int ACTIVITY_DETAIL_RESULT = 1337;
     private RecyclerView mRecyclerView;
     private boolean mIsRefreshing = false;
     private BroadcastReceiver mRefreshingReceiver = new BroadcastReceiver() {
@@ -75,6 +75,16 @@ public class ArticleListActivity extends AppCompatActivity implements
         }
     }
 
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == ACTIVITY_DETAIL_RESULT && resultCode == RESULT_OK && data != null) {
+            int pos = data.getIntExtra(ArticleDetailActivity.EXTRA_CURSOR_POSITION, -1);
+            if (pos > -1) {
+                mRecyclerView.smoothScrollToPosition(pos);
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
     private void startDetailActivity(View view, int position) {
         Intent i = new Intent(getApplicationContext(), ArticleDetailActivity.class);
 
@@ -85,7 +95,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         ActivityOptionsCompat options = ActivityOptionsCompat.
                 makeSceneTransitionAnimation(this, view.findViewById(R.id.thumbnail),
                         getString(R.string.article_img_transistion_name));
-        startActivity(i, options.toBundle());
+        startActivityForResult(i, ACTIVITY_DETAIL_RESULT, options.toBundle());
     }
 
     private void refresh() {
