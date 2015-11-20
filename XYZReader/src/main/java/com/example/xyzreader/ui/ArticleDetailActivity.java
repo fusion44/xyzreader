@@ -124,6 +124,11 @@ public class ArticleDetailActivity extends AppCompatActivity
         }
     }
 
+    @Override public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
+
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
         mCursor = null;
