@@ -22,8 +22,7 @@
             android:adjustViewBounds="true"
             android:background="@color/photo_placeholder"
             android:contentDescription="@string/content_desc_article_backdrop_img"
-            android:scaleType="centerCrop"
-            android:transitionName="@string/article_img_transistion_name"/>
+            android:scaleType="centerCrop"/>
 
         <TextView
             android:id="@+id/article_title"

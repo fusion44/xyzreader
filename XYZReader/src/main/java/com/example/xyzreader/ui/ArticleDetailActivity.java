@@ -83,6 +83,11 @@ public class ArticleDetailActivity extends AppCompatActivity
                 mStartId = getIntent().getLongExtra(EXTRA_ITEM_ID, -1);
 
                 String url = getIntent().getStringExtra(EXTRA_ITEM_IMG_URL);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    mPhotoView.setTransitionName(url);
+                }
+
                 if (!url.equals("")) {
                     Glide.with(this)
                             .load(url)

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -36,6 +37,7 @@ import java.util.ArrayList;
  */
 public class ArticleListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
+    private static final String LOG_TAG = ArticleListActivity.class.getSimpleName();
     private final static int ACTIVITY_DETAIL_RESULT = 1337;
     private RecyclerView mRecyclerView;
     private boolean mIsRefreshing = false;
@@ -93,8 +95,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         i.putExtra(ArticleDetailActivity.EXTRA_ITEM_IMG_URL, avm.photoUrl);
 
         ActivityOptionsCompat options = ActivityOptionsCompat.
-                makeSceneTransitionAnimation(this, view.findViewById(R.id.thumbnail),
-                        getString(R.string.article_img_transistion_name));
+                makeSceneTransitionAnimation(this, view.findViewById(R.id.thumbnail), avm.photoUrl);
         startActivityForResult(i, ACTIVITY_DETAIL_RESULT, options.toBundle());
     }
 
@@ -238,6 +239,10 @@ public class ArticleListActivity extends AppCompatActivity implements
             Glide.with(getApplicationContext())
                     .load(model.photoUrl)
                     .into(holder.thumbnailView);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                holder.thumbnailView.setTransitionName(model.photoUrl);
+            }
 
             runAnimation(holder, position, defaultItemAnimationDuration, getAnimationDirection());
         }
