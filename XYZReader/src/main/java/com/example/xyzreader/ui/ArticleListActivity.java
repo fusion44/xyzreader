@@ -22,10 +22,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.UpdaterService;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -234,10 +234,8 @@ public class ArticleListActivity extends AppCompatActivity implements
                 holder.itemView.setLayoutParams(sglp);
             }
 
-            // WARNING: https://github.com/bumptech/glide/issues/479
-            // See Option 1
-            Glide.with(getApplicationContext())
-                    .load(model.photoUrl)
+            Picasso.with(getApplicationContext())
+                    .load(model.thumbnailUrl)
                     .into(holder.thumbnailView);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

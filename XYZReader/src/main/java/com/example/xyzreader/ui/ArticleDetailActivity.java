@@ -17,9 +17,9 @@ import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
+import com.squareup.picasso.Picasso;
 
 /**
  * An activity representing a single Article detail screen, letting you swipe between articles.
@@ -89,9 +89,8 @@ public class ArticleDetailActivity extends AppCompatActivity
                 }
 
                 if (!url.equals("")) {
-                    Glide.with(this)
+                    Picasso.with(this)
                             .load(url)
-                            .crossFade()
                             .into(mPhotoView);
                 }
             }
@@ -99,9 +98,8 @@ public class ArticleDetailActivity extends AppCompatActivity
     }
 
     private void updateAppBarImage(String url) {
-        Glide.with(this)
+        Picasso.with(this)
                 .load(url)
-                .crossFade()
                 .into(mPhotoView);
     }
 
