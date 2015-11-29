@@ -145,9 +145,9 @@ public class ArticleListActivity extends AppCompatActivity implements
 
         ActivityOptionsCompat options = ActivityOptionsCompat.
                 makeSceneTransitionAnimation(this, view.findViewById(R.id.thumbnail), avm.photoUrl);
-        mIsReturning = false;
         startActivityForResult(i, ACTIVITY_DETAIL_RESULT, options.toBundle());
 
+        mIsReturning = false;
         ((AppBarLayout) findViewById(R.id.main_appbar)).setExpanded(false, true);
     }
 

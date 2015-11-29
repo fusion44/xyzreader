@@ -161,6 +161,10 @@ public class ArticleDetailActivity extends AppCompatActivity
     }
 
     private void updateAppBarImage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mPhotoView.setTransitionName(mCurrentUrl);
+        }
+
         mPhotoView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
@@ -171,14 +175,9 @@ public class ArticleDetailActivity extends AppCompatActivity
                         .into(mPhotoView);
 
                 precacheThumbnail();
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    mPhotoView.setTransitionName(mCurrentUrl);
-                }
                 return true;
             }
         });
-
     }
 
     private void precacheThumbnail() {
