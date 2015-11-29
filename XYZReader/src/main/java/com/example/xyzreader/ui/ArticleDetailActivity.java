@@ -1,8 +1,11 @@
 package com.example.xyzreader.ui;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.LoaderManager;
+import android.app.SharedElementCallback;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -13,13 +16,21 @@ import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.transition.Slide;
+import android.transition.Transition;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.squareup.picasso.Picasso;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * An activity representing a single Article detail screen, letting you swipe between articles.
@@ -30,6 +41,7 @@ public class ArticleDetailActivity extends AppCompatActivity
     public static final String EXTRA_ITEM_ID = "ARTICLE_ITEM_URI";
     public static final String EXTRA_ITEM_IMG_URL = "ARTICLE_ITEM_IMG_URL";
     public static final String EXTRA_CURSOR_POSITION = "ARTICLE_ITEM_POSITION";
+    private static final String TAG = ArticleDetailActivity.class.getSimpleName();
 
     private Cursor mCursor;
     private long mStartId;
@@ -37,6 +49,8 @@ public class ArticleDetailActivity extends AppCompatActivity
     private ViewPager mPager;
     private MyPagerAdapter mPagerAdapter;
     private ImageView mPhotoView;
+    private boolean mIsReturning;
+    private String mCurrentUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +61,8 @@ public class ArticleDetailActivity extends AppCompatActivity
                             View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         }
         setContentView(R.layout.activity_article_detail);
+
+        setupTransitions();
 
         Toolbar t = (Toolbar) findViewById(R.id.toolbar);
         if (t != null) {
@@ -69,9 +85,8 @@ public class ArticleDetailActivity extends AppCompatActivity
             public void onPageSelected(int position) {
                 if (mCursor != null) {
                     mCursor.moveToPosition(position);
-
-                    String url = mCursor.getString(ArticleLoader.Query.PHOTO_URL);
-                    updateAppBarImage(url);
+                    mCurrentUrl = mCursor.getString(ArticleLoader.Query.PHOTO_URL);
+                    updateAppBarImage();
                 }
             }
         });
@@ -82,25 +97,94 @@ public class ArticleDetailActivity extends AppCompatActivity
             if (getIntent() != null) {
                 mStartId = getIntent().getLongExtra(EXTRA_ITEM_ID, -1);
 
-                String url = getIntent().getStringExtra(EXTRA_ITEM_IMG_URL);
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    mPhotoView.setTransitionName(url);
-                }
-
-                if (!url.equals("")) {
-                    Picasso.with(this)
-                            .load(url)
-                            .into(mPhotoView);
+                mCurrentUrl = getIntent().getStringExtra(EXTRA_ITEM_IMG_URL);
+                if (!mCurrentUrl.equals("")) {
+                    updateAppBarImage();
                 }
             }
         }
     }
 
-    private void updateAppBarImage(String url) {
+    private void setupTransitions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            setEnterSharedElementCallback(new SharedElementCallback() {
+                @SuppressLint("NewApi") @Override
+                public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+                    if (mIsReturning) {
+                        names.clear();
+                        sharedElements.clear();
+                        names.add(mPhotoView.getTransitionName());
+                        sharedElements.put(mPhotoView.getTransitionName(), mPhotoView);
+                    }
+                }
+
+                @SuppressLint("NewApi") @Override
+                public void onSharedElementStart(List<String> sharedElementNames, List<View> sharedElements,
+                                                 List<View> sharedElementSnapshots) {
+                    if (!mIsReturning) {
+                        getWindow().setEnterTransition(makeEnterTransition());
+                    }
+                }
+
+                @SuppressLint("NewApi") @Override
+                public void onSharedElementEnd(List<String> sharedElementNames, List<View> sharedElements,
+                                               List<View> sharedElementSnapshots) {
+                    if (mIsReturning) {
+                        getWindow().setReturnTransition(makeReturnTransition());
+                    }
+                }
+            });
+        }
+    }
+
+    @SuppressLint("NewApi") private Transition makeReturnTransition() {
+        View rootView = mPagerAdapter.getCurrentDetailsFragment().getView();
+        assert rootView != null;
+
+        // slide card out of the screen
+        Transition cardSlide = new Slide(Gravity.BOTTOM);
+        cardSlide.addTarget(rootView.findViewById(R.id.article_card));
+        cardSlide.setDuration(getResources().getInteger(R.integer.transition_duration));
+        return cardSlide;
+    }
+
+    @SuppressLint("NewApi") private Transition makeEnterTransition() {
+        View rootView = mPagerAdapter.getCurrentDetailsFragment().getView();
+        assert rootView != null;
+
+        // slide card in to the screen
+        Transition cardSlide = new Slide(Gravity.BOTTOM);
+        cardSlide.addTarget(rootView.findViewById(R.id.article_card));
+        cardSlide.setDuration(getResources().getInteger(R.integer.transition_duration));
+        return cardSlide;
+
+    }
+
+    private void updateAppBarImage() {
+        mPhotoView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                Picasso.with(getApplicationContext())
+                        .load(mCurrentUrl)
+                        .resize(mPhotoView.getMeasuredWidth(), mPhotoView.getMeasuredHeight())
+                        .centerCrop()
+                        .into(mPhotoView);
+
+                precacheThumbnail();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    mPhotoView.setTransitionName(mCurrentUrl);
+                }
+                return true;
+            }
+        });
+
+    }
+
+    private void precacheThumbnail() {
         Picasso.with(this)
-                .load(url)
-                .into(mPhotoView);
+                .load(mCurrentUrl)
+                .fetch();
     }
 
     @Override
@@ -134,13 +218,16 @@ public class ArticleDetailActivity extends AppCompatActivity
         return true;
     }
 
-    @Override public void onBackPressed() {
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP) @Override
+    public void finishAfterTransition() {
         // report cursor position back
         // RecyclerView has to scroll to last viewed article
         Intent i = new Intent();
         i.putExtra(ArticleDetailActivity.EXTRA_CURSOR_POSITION, mCursor.getPosition());
         setResult(RESULT_OK, i);
-        super.onBackPressed();
+        mIsReturning = true;
+        getWindow().setReturnTransition(makeReturnTransition());
+        super.finishAfterTransition();
     }
 
     @Override
@@ -150,6 +237,8 @@ public class ArticleDetailActivity extends AppCompatActivity
     }
 
     private class MyPagerAdapter extends FragmentStatePagerAdapter {
+        private ArticleDetailFragment mCurrentFragment;
+
         public MyPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -163,6 +252,15 @@ public class ArticleDetailActivity extends AppCompatActivity
         @Override
         public int getCount() {
             return (mCursor != null) ? mCursor.getCount() : 0;
+        }
+
+        @Override public void setPrimaryItem(ViewGroup container, int position, Object object) {
+            super.setPrimaryItem(container, position, object);
+            mCurrentFragment = (ArticleDetailFragment) object;
+        }
+
+        public ArticleDetailFragment getCurrentDetailsFragment() {
+            return mCurrentFragment;
         }
     }
 }

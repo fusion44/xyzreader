@@ -1,6 +1,8 @@
 package com.example.xyzreader.ui;
 
+import android.annotation.SuppressLint;
 import android.app.LoaderManager;
+import android.app.SharedElementCallback;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +11,7 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -19,6 +22,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,6 +32,8 @@ import com.example.xyzreader.data.UpdaterService;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An activity representing a list of Articles. This activity has different presentations for
@@ -37,7 +43,7 @@ import java.util.ArrayList;
  */
 public class ArticleListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
-    private static final String LOG_TAG = ArticleListActivity.class.getSimpleName();
+    private static final String TAG = ArticleListActivity.class.getSimpleName();
     private final static int ACTIVITY_DETAIL_RESULT = 1337;
     private RecyclerView mRecyclerView;
     private boolean mIsRefreshing = false;
@@ -51,10 +57,13 @@ public class ArticleListActivity extends AppCompatActivity implements
         }
     };
 
+    private boolean mIsReturning;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_list);
+        setupTransitions();
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.addOnItemTouchListener(new RecyclerViewClickListener(getApplicationContext(), new RecyclerViewClickListener.OnItemGestureListener() {
@@ -77,14 +86,54 @@ public class ArticleListActivity extends AppCompatActivity implements
         }
     }
 
-    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == ACTIVITY_DETAIL_RESULT && resultCode == RESULT_OK && data != null) {
+    private void setupTransitions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            setExitSharedElementCallback(new SharedElementCallback() {
+                @SuppressLint("NewApi") @Override
+                public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+                    if (mIsReturning) {
+                        View v = mRecyclerView.findViewWithTag(names.get(0));
+                        if (v != null) {
+                            sharedElements.clear();
+                            sharedElements.put(names.get(0), v);
+                        }
+                    }
+                }
+
+                @SuppressLint("NewApi") @Override
+                public void onSharedElementStart(List<String> sharedElementNames, List<View> sharedElements,
+                                                 List<View> sharedElementSnapshots) {
+                }
+
+                @SuppressLint("NewApi") @Override
+                public void onSharedElementEnd(List<String> sharedElementNames, List<View> sharedElements,
+                                               List<View> sharedElementSnapshots) {
+                }
+            });
+        }
+    }
+
+    @Override public void onActivityReenter(int resultCode, Intent data) {
+        super.onActivityReenter(resultCode, data);
+
+        mIsReturning = true;
+        if (resultCode == RESULT_OK && data != null) {
             int pos = data.getIntExtra(ArticleDetailActivity.EXTRA_CURSOR_POSITION, -1);
             if (pos > -1) {
-                mRecyclerView.smoothScrollToPosition(pos);
+                mRecyclerView.getLayoutManager().scrollToPosition(pos);
+
+                supportPostponeEnterTransition();
+                mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                    @Override
+                    public boolean onPreDraw() {
+                        mRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                        mRecyclerView.requestLayout();
+                        supportStartPostponedEnterTransition();
+                        return true;
+                    }
+                });
             }
         }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void startDetailActivity(View view, int position) {
@@ -96,7 +145,10 @@ public class ArticleListActivity extends AppCompatActivity implements
 
         ActivityOptionsCompat options = ActivityOptionsCompat.
                 makeSceneTransitionAnimation(this, view.findViewById(R.id.thumbnail), avm.photoUrl);
+        mIsReturning = false;
         startActivityForResult(i, ACTIVITY_DETAIL_RESULT, options.toBundle());
+
+        ((AppBarLayout) findViewById(R.id.main_appbar)).setExpanded(false, true);
     }
 
     private void refresh() {
@@ -239,6 +291,7 @@ public class ArticleListActivity extends AppCompatActivity implements
                     .into(holder.thumbnailView);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                holder.thumbnailView.setTag(model.photoUrl);
                 holder.thumbnailView.setTransitionName(model.photoUrl);
             }
 

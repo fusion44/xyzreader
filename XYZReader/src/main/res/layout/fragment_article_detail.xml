@@ -10,9 +10,11 @@
         android:layout_height="match_parent">
 
         <android.support.v7.widget.CardView
+            android:id="@+id/article_card"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:transitionGroup="true"
             app:cardElevation="8dp"
             app:contentPadding="16dp"
             app:layout_widthPercent="@fraction/detail_card_width_percent">
