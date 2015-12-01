@@ -141,11 +141,14 @@ public class ArticleDetailActivity extends AppCompatActivity
         View rootView = mPagerAdapter.getCurrentDetailsFragment().getView();
         assert rootView != null;
 
+        findViewById(R.id.article_appbar).setVisibility(View.INVISIBLE);
+
         // slide card out of the screen
-        Transition cardSlide = new Slide(Gravity.BOTTOM);
-        cardSlide.addTarget(rootView.findViewById(R.id.article_card));
-        cardSlide.setDuration(getResources().getInteger(R.integer.transition_duration));
-        return cardSlide;
+        Transition slideBottom = new Slide(Gravity.BOTTOM);
+        slideBottom.addTarget(rootView.findViewById(R.id.article_card));
+        slideBottom.addTarget(findViewById(R.id.share_fab));
+        slideBottom.setDuration(getResources().getInteger(R.integer.transition_duration));
+        return slideBottom;
     }
 
     @SuppressLint("NewApi") private Transition makeEnterTransition() {
