@@ -27,6 +27,7 @@ import android.widget.ImageView;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -107,6 +108,7 @@ public class ArticleDetailActivity extends AppCompatActivity
 
     private void setupTransitions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            postponeEnterTransition();
             setEnterSharedElementCallback(new SharedElementCallback() {
                 @SuppressLint("NewApi") @Override
                 public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
@@ -138,29 +140,22 @@ public class ArticleDetailActivity extends AppCompatActivity
     }
 
     @SuppressLint("NewApi") private Transition makeReturnTransition() {
-        View rootView = mPagerAdapter.getCurrentDetailsFragment().getView();
-        assert rootView != null;
-
         findViewById(R.id.article_appbar).setVisibility(View.INVISIBLE);
 
         // slide card out of the screen
         Transition slideBottom = new Slide(Gravity.BOTTOM);
-        slideBottom.addTarget(rootView.findViewById(R.id.article_card));
+        slideBottom.addTarget(findViewById(R.id.article_card));
         slideBottom.addTarget(findViewById(R.id.share_fab));
         slideBottom.setDuration(getResources().getInteger(R.integer.transition_duration));
         return slideBottom;
     }
 
     @SuppressLint("NewApi") private Transition makeEnterTransition() {
-        View rootView = mPagerAdapter.getCurrentDetailsFragment().getView();
-        assert rootView != null;
-
         // slide card in to the screen
         Transition cardSlide = new Slide(Gravity.BOTTOM);
-        cardSlide.addTarget(rootView.findViewById(R.id.article_card));
+        cardSlide.addTarget(findViewById(R.id.article_card));
         cardSlide.setDuration(getResources().getInteger(R.integer.transition_duration));
         return cardSlide;
-
     }
 
     private void updateAppBarImage() {
@@ -175,7 +170,15 @@ public class ArticleDetailActivity extends AppCompatActivity
                         .load(mCurrentUrl)
                         .resize(mPhotoView.getMeasuredWidth(), mPhotoView.getMeasuredHeight())
                         .centerCrop()
-                        .into(mPhotoView);
+                        .into(mPhotoView, new Callback() {
+                            @Override public void onSuccess() {
+                                supportStartPostponedEnterTransition();
+                            }
+
+                            @Override public void onError() {
+
+                            }
+                        });
 
                 precacheThumbnail();
                 return true;
@@ -239,8 +242,6 @@ public class ArticleDetailActivity extends AppCompatActivity
     }
 
     private class MyPagerAdapter extends FragmentStatePagerAdapter {
-        private ArticleDetailFragment mCurrentFragment;
-
         public MyPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -258,11 +259,6 @@ public class ArticleDetailActivity extends AppCompatActivity
 
         @Override public void setPrimaryItem(ViewGroup container, int position, Object object) {
             super.setPrimaryItem(container, position, object);
-            mCurrentFragment = (ArticleDetailFragment) object;
-        }
-
-        public ArticleDetailFragment getCurrentDetailsFragment() {
-            return mCurrentFragment;
         }
     }
 }
