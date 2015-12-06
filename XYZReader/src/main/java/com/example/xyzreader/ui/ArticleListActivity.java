@@ -108,6 +108,7 @@ public class ArticleListActivity extends AppCompatActivity implements
                 @SuppressLint("NewApi") @Override
                 public void onSharedElementEnd(List<String> sharedElementNames, List<View> sharedElements,
                                                List<View> sharedElementSnapshots) {
+                    ((AppBarLayout) findViewById(R.id.main_appbar)).setExpanded(false, true);
                 }
             });
         }
@@ -148,7 +149,6 @@ public class ArticleListActivity extends AppCompatActivity implements
         startActivityForResult(i, ACTIVITY_DETAIL_RESULT, options.toBundle());
 
         mIsReturning = false;
-        ((AppBarLayout) findViewById(R.id.main_appbar)).setExpanded(false, true);
     }
 
     private void refresh() {

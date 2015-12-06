@@ -181,6 +181,7 @@ public class ArticleDetailActivity extends AppCompatActivity
                         });
 
                 precacheThumbnail();
+                mPhotoView.getViewTreeObserver().removeOnPreDrawListener(this);
                 return true;
             }
         });
