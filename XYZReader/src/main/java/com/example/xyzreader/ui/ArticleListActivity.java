@@ -91,7 +91,7 @@ public class ArticleListActivity extends AppCompatActivity implements
             setExitSharedElementCallback(new SharedElementCallback() {
                 @SuppressLint("NewApi") @Override
                 public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
-                    if (mIsReturning) {
+                    if (mIsReturning && names.size() > 0) {
                         View v = mRecyclerView.findViewWithTag(names.get(0));
                         if (v != null) {
                             sharedElements.clear();
@@ -108,19 +108,20 @@ public class ArticleListActivity extends AppCompatActivity implements
                 @SuppressLint("NewApi") @Override
                 public void onSharedElementEnd(List<String> sharedElementNames, List<View> sharedElements,
                                                List<View> sharedElementSnapshots) {
-                    ((AppBarLayout) findViewById(R.id.main_appbar)).setExpanded(false, true);
                 }
             });
         }
     }
 
     @Override public void onActivityReenter(int resultCode, Intent data) {
+        ((AppBarLayout) findViewById(R.id.main_appbar)).setExpanded(false, false);
+
         super.onActivityReenter(resultCode, data);
 
         mIsReturning = true;
         if (resultCode == RESULT_OK && data != null) {
             int pos = data.getIntExtra(ArticleDetailActivity.EXTRA_CURSOR_POSITION, -1);
-            if (pos > -1) {
+            if (pos > -1 && mRecyclerView.getLayoutManager() != null) {
                 mRecyclerView.getLayoutManager().scrollToPosition(pos);
 
                 supportPostponeEnterTransition();
@@ -275,7 +276,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         public void onBindViewHolder(ArticleViewHolder holder, int position) {
             ArticleViewModel model = mViewModels.get(position);
             holder.itemView.setTag(model);
-            holder.titleView.setText(String.valueOf(position) + " " + model.title);
+            holder.titleView.setText(model.title);
             holder.subtitleView.setText(model.subtitle);
 
             final ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();

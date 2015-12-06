@@ -144,7 +144,9 @@ public class ArticleDetailActivity extends AppCompatActivity
 
         // slide card out of the screen
         Transition slideBottom = new Slide(Gravity.BOTTOM);
-        slideBottom.addTarget(findViewById(R.id.article_card));
+        if (mPagerAdapter.getCurrentFragment().getView() != null) {
+            slideBottom.addTarget(mPagerAdapter.getCurrentFragment().getView().findViewById(R.id.article_card));
+        }
         slideBottom.addTarget(findViewById(R.id.share_fab));
         slideBottom.setDuration(getResources().getInteger(R.integer.transition_duration));
         return slideBottom;
@@ -153,7 +155,9 @@ public class ArticleDetailActivity extends AppCompatActivity
     @SuppressLint("NewApi") private Transition makeEnterTransition() {
         // slide card in to the screen
         Transition cardSlide = new Slide(Gravity.BOTTOM);
-        cardSlide.addTarget(findViewById(R.id.article_card));
+        if (mPagerAdapter.getCurrentFragment().getView() != null) {
+            cardSlide.addTarget(mPagerAdapter.getCurrentFragment().getView().findViewById(R.id.article_card));
+        }
         cardSlide.setDuration(getResources().getInteger(R.integer.transition_duration));
         return cardSlide;
     }
@@ -243,6 +247,8 @@ public class ArticleDetailActivity extends AppCompatActivity
     }
 
     private class MyPagerAdapter extends FragmentStatePagerAdapter {
+        private Fragment mCurrentFragment;
+
         public MyPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -259,7 +265,12 @@ public class ArticleDetailActivity extends AppCompatActivity
         }
 
         @Override public void setPrimaryItem(ViewGroup container, int position, Object object) {
+            mCurrentFragment = (Fragment) object;
             super.setPrimaryItem(container, position, object);
+        }
+
+        public Fragment getCurrentFragment() {
+            return mCurrentFragment;
         }
     }
 }
